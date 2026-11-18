@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Калькулятор стоимости бухгалтерского сопровождения</title>
+<style>
+:root {
+  color: #f7f7fc;
+  background: #0a0d16;
+  font: 17px/1.55 "Inter", "Segoe UI", sans-serif;
+  color-scheme: dark;
+  --muted: #c7cbdb;
+  --panel: #161a2a;
+  --border: #34304d;
+  --accent: #8fdf9f;
+  --focus: #a9e5af;
+  --action: linear-gradient(105deg, #245d44, #643b8a);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+.wrap { width: min(1080px, calc(100% - 32px)); margin-inline: auto; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-block: 9px 4px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.brand-mark { width: 85px; height: 85px; flex: none; }
+.hero {
+  padding: clamp(20px, 6vw, 66px);
+  border-radius: 24px;
+  background: radial-gradient(ellipse at bottom left, #10392e, transparent 62%),
+              radial-gradient(ellipse at top right, #342052, transparent 62%), #0c111b;
+}
+.slogan {
+  margin: 0;
+  font-size: clamp(22px, 6.6vw, 70px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -.055em;
+}
+.slogan span {
+  display: block;
+  width: fit-content;
+  white-space: nowrap;
+  color: var(--accent);
+}
+.slogan span::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 4px;
+  margin-top: 24px;
+  background: linear-gradient(90deg, #77db94, #b282eb, #659deb);
+}
+h1 {
+  margin: 24px 0 6px;
+  max-width: 800px;
+  font-size: clamp(22px, 3.6vw, 38px);
+  line-height: 1.15;
+}
+.hero > p:last-child { margin: 0; color: var(--muted); }
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 22px;
+  align-items: start;
+  margin-block: 24px 60px;
+}
+.card {
+  margin-bottom: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--panel);
+}
+.inside { padding: 24px; }
+h2 { font-size: 20px; line-height: 1.25; margin: 0 0 7px; }
+h3 { font-size: 18px; line-height: 1.3; margin: 0; }
+.hint { font-size: 14px; color: var(--muted); margin: 0; }
+.choice { display: flex; gap: 10px; margin-top: 20px; }
+.choice label { cursor: pointer; }
+.choice input { position: absolute; opacity: 0; }
+.choice span {
+  display: block;
+  padding: 10px 29px;
+  border: 1px solid #58516e;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.choice input:checked + span {
+  background: linear-gradient(145deg, #182c2b, #161a2a);
+  border-color: #83ad97;
+  color: var(--accent);
+}
+.choice input:focus-visible + span,
+.control input:focus-visible,
+.summary button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.section-head { padding: 20px 24px 14px; border-bottom: 1px solid var(--border); }
+.section-head .hint { margin-top: 5px; }
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.row:last-child { border: 0; }
+.row label { flex: 1; overflow-wrap: anywhere; }
+.control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.control input {
+  width: 75px;
+  padding: 8px;
+  border: 1px solid #58516e;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 16px;
+  color: #f7f7fc;
+  text-align: center;
+  background: #0c111b;
+}
+.side { position: sticky; top: 20px; grid-column: 2; grid-row: 1; }
+.summary {
+  padding: 24px;
+  background: linear-gradient(115deg, #122c29, #231933);
+  border-color: #4a3d60;
+}
+.summary .caption { color: var(--muted); font-size: 14px; margin: 21px 0 0; }
+.amount { font-size: 29px; font-weight: 750; margin: 5px 0 2px; }
+.summary button {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: var(--action);
+  color: white;
+  padding: 12px 20px;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  margin-top: 22px;
+}
+.summary button:hover { background: linear-gradient(105deg, #2b6a4d, #73449d); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.actions button { width: auto; flex: 1; margin: 0; padding-inline: 12px; white-space: nowrap; }
+.actions .reset { background: transparent; border: 1px solid #58516e; color: var(--muted); }
+.actions .reset:hover { background: var(--panel); }
+.message { color: var(--accent); font-size: 14px; margin: 16px 0 0; }
+.parameters { display: grid; gap: 14px; margin-top: 20px; }
+.field { display: grid; gap: 5px; font-size: 14px; }
+.field select {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #58516e;
+  border-radius: 10px;
+  background: #0c111b;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+}
+.field select:focus-visible, .parameters input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+.check { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.check input { accent-color: var(--accent); flex: none; }
+.field input { max-width: 100%; }
+.payroll-options { display: grid; gap: 10px; padding: 14px 24px; min-width: 0; border: 0; margin: 0; }
+.payroll-options legend { padding: 10px 0 0; font-size: 14px; font-weight: 700; }
+.employee-hint, .payroll-warning { padding: 0 24px 14px; }
+.payroll-warning { color: var(--accent); }
+.breakdown { grid-column: 1 / -1; }
+.breakdown-line { display: grid; gap: 6px; align-items: start; }
+.breakdown-line h3 { font-size: 15px; }
+.breakdown-line dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 0;
+}
+.breakdown-line dl div { display: flex; flex-wrap: wrap; gap: 0 6px; }
+.breakdown-line dt { color: var(--muted); }
+.breakdown-line dd { margin: 0; font-variant-numeric: tabular-nums; }
+.summary .field { margin-top: 16px; }
+.payment-details { margin-block: 16px 0; font-size: 14px; }
+.payment-details div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; margin-top: 6px; }
+.payment-details dd { margin: 0; font-weight: 650; }
+.export-actions { display: grid; gap: 8px; margin-top: 12px; }
+.export-actions button { margin: 0; padding-inline: 10px; background: transparent; border: 1px solid #58516e; font-size: 14px; }
+.export-actions button:disabled { opacity: .45; cursor: default; }
+.export-actions button:disabled:hover { background: transparent; }
+.print-heading { display: none; }
+[hidden] { display: none !important; }
+@media (max-width: 760px) {
+  main { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; grid-column: 1; grid-row: 2; }
+}
+@media (max-width: 700px) {
+  .brand { gap: 10px; padding-block: 12px 10px; font-size: 21px; }
+  .brand-mark { width: 64px; height: 64px; }
+  .hero { border-radius: 18px; }
+  .slogan span::after { margin-top: 14px; }
+  .row { padding-inline: 14px; gap: 10px; }
+  .inside, .section-head, .summary { padding: 18px; }
+  .control input { width: 68px; }
+  .employee-hint, .payroll-options, .payroll-warning { padding-inline: 14px; }
+}
+@media print {
+  @page { margin: 14mm; }
+  :root { color: #171717; background: white; color-scheme: light; font-size: 11pt; }
+  .wrap { width: 100%; }
+  .brand { padding: 0 0 8px; font-size: 20pt; }
+  .brand-mark { width: 46px; height: 46px; print-color-adjust: exact; }
+  .hero { padding: 0; background: none; }
+  .hero h1, .hero > p:last-child, main > form, .summary .field,
+  .actions, .export-actions, .message { display: none !important; }
+  .slogan { font-size: 19pt; }
+  .slogan span { color: #245d44; }
+  .slogan span::after { margin-top: 5px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  main { display: block; margin: 18px 0 0; }
+  main > * { width: 100%; }
+  .print-heading { display: block; }
+  .print-heading p { margin: 4px 0 0; }
+  .side { position: static; margin-top: 10px; }
+  main:has(.print-heading[hidden]) > .side { display: none; }
+  .card, .summary { background: white; border-color: #aaa; box-shadow: none; margin: 0; }
+  .print-heading { margin-bottom: 10px; }
+  .section-head, .row, .summary { padding: 8px 12px; }
+  .section-head, .row { border-color: #ccc; }
+  .breakdown-line, .summary, header, .print-heading { break-inside: avoid; page-break-inside: avoid; }
+  .section-head { break-after: avoid; }
+  .hint, .breakdown-line dt, .summary .caption { color: #333; }
+  .summary .caption { margin-top: 8px; }
+  .amount { font-size: 18pt; }
+}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true">
+  <defs>
+    <linearGradient id="outer"><stop stop-color="#69c5f6"/><stop offset=".48" stop-color="#8681ed"/><stop offset="1" stop-color="#d48be7"/></linearGradient>
+    <linearGradient id="inner" x2="1" y2="1"><stop stop-color="#80abf3"/><stop offset=".55" stop-color="#8cdd9d"/><stop offset="1" stop-color="#bd80ef"/></linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="50" fill="#030305"/>
+  <path d="M50 20 61 31 69 31 69 40 80 50 69 61 69 69 61 69 50 80 39 69 31 69 31 61 20 50 31 40 31 31 39 31Z" fill="none" stroke="url(#outer)" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M50 25 56 44 75 50 56 56 50 75 44 56 25 50 44 44Z M50 40 40 50 50 60 60 50Z" fill="url(#inner)" fill-rule="evenodd"/>
+</svg>
+    <span>Татьяна Ивашнева</span>
+  </div>
+  <div class="hero">
+    <p class="slogan">Порядок в цифрах. <span>Уверенность в решениях</span></p>
+    <h1>Калькулятор стоимости бухгалтерского сопровождения</h1>
+    <p>Укажите параметры бизнеса и необходимые услуги.</p>
+  </div>
+</header>
+<main class="wrap">
+  <form id="calculator">
+    <section class="card inside" aria-labelledby="form-title">
+      <h2 id="form-title">Организационно-правовая форма</h2>
+      <p class="hint">Выберите форму вашего бизнеса</p>
+      <div class="choice" role="group" aria-labelledby="form-title">
+        <label><input type="radio" name="organization" value="ИП" checked><span>ИП</span></label>
+        <label><input type="radio" name="organization" value="ООО"><span>ООО</span></label>
+      </div>
+      <div class="parameters">
+        <label class="field" for="tax-mode">
+          Система налогообложения
+          <select id="tax-mode" required></select>
+        </label>
+        <label class="field" for="client-vat" id="vat-field">
+          НДС
+          <select id="client-vat" aria-describedby="vat-hint" disabled>
+            <option value="">Без НДС</option>
+            <option value="reduced">5% или 7%</option>
+            <option value="standard">22%</option>
+          </select>
+          <span class="hint" id="vat-hint" hidden>22% — допущение тарифной модели для ОСНО.</span>
+        </label>
+        <label class="field" id="subdivision-field" hidden>
+          Количество обособленных подразделений
+          <span class="control"><input type="number" id="subdivision" min="0" step="1" value="0" inputmode="numeric" aria-describedby="subdivision-hint" disabled></span>
+          <span class="hint" id="subdivision-hint">Головную организацию не включайте.</span>
+        </label>
+      </div>
+    </section>
+    <div id="sections"></div>
+  </form>
+  <section class="print-heading" id="print-heading" hidden>
+    <h2>Предварительный расчёт стоимости бухгалтерского сопровождения</h2>
+    <p id="print-context"></p>
+  </section>
+  <section class="card breakdown" id="breakdown" aria-labelledby="breakdown-title" hidden>
+    <div class="section-head"><h2 id="breakdown-title">Расшифровка расчёта</h2></div>
+    <div id="breakdown-lines"></div>
+  </section>
+  <aside class="side">
+    <section class="card summary" aria-labelledby="total-title">
+      <h2 id="total-title">Итоговая стоимость</h2>
+      <p class="caption">К оплате в месяц</p>
+      <div class="amount" id="total" aria-live="polite">—</div>
+      <label class="field" for="provider-vat">
+        НДС на бухгалтерские услуги
+        <select id="provider-vat">
+          <option value="0">Без НДС</option>
+          <option value="5">5%</option>
+          <option value="7">7%</option>
+          <option value="22">22%</option>
+        </select>
+      </label>
+      <dl class="payment-details" id="payment-details" hidden></dl>
+      <div class="actions">
+        <button id="calculate" type="submit" form="calculator">Рассчитать</button>
+        <button class="reset" type="reset" form="calculator">Сбросить</button>
+      </div>
+      <div class="export-actions">
+        <button type="button" id="copy-calculation" disabled>Скопировать расчёт</button>
+        <button type="button" id="print-calculation" disabled>Распечатать / сохранить PDF</button>
+      </div>
+      <p class="message" id="message" role="status" hidden></p>
+    </section>
+  </aside>
+</main>
+<script>
+// Ключи совпадают с номерами строк листа Table 2.
+const tariffs = {
+  5: ['Учёт банковских операций (1 расчётный счёт, основной)', 3500, 'счёт'],
+  6: ['Начисление зарплаты (1 генеральный директор)', 2500],
+  7: ['Отчётность по учёту заработной платы', 3500],
+  8: ['Специальный налоговый режим УСН 6%', 7500],
+  9: ['Специальный налоговый режим УСН 15%', 9500],
+  10: ['Общая система налогообложения', 20000],
+  11: ['Патентная система налогообложения', 4500],
+  12: ['Бухгалтерская (финансовая) отчётность (по количеству форм)', 500, 'форм'],
+  14: ['Дополнительные расчётные счета (с движением ДС)', 2500, 'счетов'],
+  15: ['Дополнительные расчётные счета (без движения ДС)', 1700, 'счетов'],
+  16: ['Кассовый аппарат (ККТ)', 8200, 'аппаратов'],
+  17: ['Учёт первичной документации и расчётов с подотчётными лицами (по затраченному времени)', 150, 'мин'],
+  19: ['Аренда программного обеспечения', 1500, 'кол-во'],
+  20: ['Транспортные средства', 500, 'кол-во'],
+  21: ['Земельные участки', 500, 'кол-во'],
+  22: ['Имущество (здания, сооружения)', 500, 'кол-во'],
+  23: ['Прочие основные средства (1–2 амортизационная группа)', 500, 'кол-во'],
+  24: ['Учёт капитальных вложений', 1300, 'кол-во'],
+  25: ['Уведомление по транспортному налогу', 1300, 'кол-во'],
+  26: ['Уведомление по земельному налогу', 1300, 'кол-во'],
+  27: ['Декларация по налогу на имущество (балансовая стоимость объекта)', 1800, 'кол-во'],
+  28: ['Уведомление по налогу на имущество', 1300, 'кол-во'],
+  29: ['Учёт расчётов по кредитам и займам (по количеству договоров)', 1700, 'договоров'],
+  30: ['Договоры лизинга', 700, 'договоров'],
+  31: ['ВЭД (по количеству ГТД)', 7000, 'ГТД'],
+  33: ['РВБ (Wildberries)', 15000, 'кабинетов'],
+  34: ['Ozon', 6000, 'кабинетов'],
+  35: ['Яндекс Маркет, Мегамаркет', 5000, 'кабинетов'],
+  36: ['Другие маркетплейсы', 4000, 'кабинетов'],
+  37: ['Учёт заработной платы (начисление + отчётность)', 3500],
+  38: ['Доплата за сотрудников', 1000, 'чел.']
+};
+
+const taxModes = [
+  ['УСН «Доходы» (6%)', [8]],
+  ['УСН «Доходы минус расходы» (15%)', [9]],
+  ['ОСНО', [10]],
+  ['ПСН', [11]],
+  ['УСН «Доходы» + ПСН', [8, 11]],
+  ['УСН «Доходы минус расходы» + ПСН', [9, 11]],
+  ['ОСНО + ПСН', [10, 11]]
+];
+
+const sections = [
+  { title: 'Обязательные бизнес-процессы', rows: [5, 12] },
+  { title: 'Переменные бизнес-процессы', rows: [14, 15, 16, 17] },
+  { title: 'Индивидуальные бизнес-процессы', rows: [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31] },
+  { title: 'Учёт расчётов по маркетплейсам', hint: 'Укажите количество кабинетов по каждому маркетплейсу.', rows: [33, 34, 35, 36] }
+];
+
+const form = document.getElementById('calculator');
+const sectionContainer = document.getElementById('sections');
+const taxMode = document.getElementById('tax-mode');
+const clientVat = document.getElementById('client-vat');
+const subdivision = document.getElementById('subdivision');
+const breakdown = document.getElementById('breakdown');
+const breakdownLines = document.getElementById('breakdown-lines');
+const total = document.getElementById('total');
+const message = document.getElementById('message');
+const providerVat = document.getElementById('provider-vat');
+const paymentDetails = document.getElementById('payment-details');
+const copyButton = document.getElementById('copy-calculation');
+const printButton = document.getElementById('print-calculation');
+const printHeading = document.getElementById('print-heading');
+const printContext = document.getElementById('print-context');
+let currentCalculation = null;
+const serviceInputs = [];
+
+const rubles = new Intl.NumberFormat('ru-RU', {
+  style: 'currency', currency: 'RUB', minimumFractionDigits: 2, maximumFractionDigits: 2
+});
+const numbers = new Intl.NumberFormat('ru-RU');
+
+function element(tag, content, className) {
+  const node = document.createElement(tag);
+  if (content) node.textContent = content;
+  if (className) node.className = className;
+  return node;
+}
+
+function serviceCard(title, hint) {
+  const card = element('section', '', 'card');
+  const header = element('div', '', 'section-head');
+  header.append(element('h3', title));
+  if (hint) header.append(element('p', hint, 'hint'));
+  card.append(header);
+  sectionContainer.append(card);
+  return card;
+}
+
+function quantityField(card, id, name, unit) {
+  const row = element('div', '', 'row');
+  const label = element('label', name);
+  label.htmlFor = id;
+  const input = element('input');
+  input.id = id;
+  input.type = 'number';
+  input.inputMode = 'numeric';
+  input.min = '0';
+  input.step = '1';
+  input.value = '0';
+  const suffix = element('span', unit);
+  suffix.id = id + '-unit';
+  input.setAttribute('aria-describedby', suffix.id);
+  const control = element('div', '', 'control');
+  control.append(input, suffix);
+  row.append(label, control);
+  card.append(row);
+  return input;
+}
+
+for (const section of sections) {
+  const card = serviceCard(section.title, section.hint);
+  for (const row of section.rows) {
+    const [name, , unit] = tariffs[row];
+    const names = row === 35 ? ['Яндекс Маркет', 'Мегамаркет'] : [name];
+    for (const [index, label] of names.entries()) {
+      const input = quantityField(card, `service-${row}-${index}`, label, unit);
+      if (row === 5) input.max = '1';
+      serviceInputs.push({ row, input, label });
+    }
+  }
+}
+
+const payrollCard = serviceCard(tariffs[37][0]);
+const employees = quantityField(payrollCard, 'employees', 'Количество наёмных сотрудников', 'чел.');
+const companyPayroll = element('div');
+companyPayroll.innerHTML = `
+  <fieldset class="payroll-options">
+    <legend>Состав сотрудников ООО</legend>
+    <label class="check">
+      <input type="radio" name="payroll" value="director" aria-describedby="director-hint" checked>
+      Единственный сотрудник — директор (зарплата начисляется или не начисляется)
+    </label>
+    <label class="check">
+      <input type="radio" name="payroll" value="team">
+      Директор и другие сотрудники
+    </label>
+  </fieldset>
+  <p class="hint employee-hint" id="director-hint">Выберите этот вариант, если в ООО нет других сотрудников. Он применяется даже в том случае, если директору не начисляется зарплата.</p>
+  <p class="hint payroll-warning" role="status" hidden>У организации указан единственный сотрудник — директор, при этом имеются обособленные подразделения. Необходимо уточнить наличие стационарных рабочих мест и организацию деятельности подразделений</p>
+`;
+payrollCard.append(companyPayroll);
+const teamEmployees = quantityField(companyPayroll, 'team-employees', 'Общее количество сотрудников, включая директора', 'чел.');
+teamEmployees.min = '2';
+teamEmployees.required = true;
+const directorHint = companyPayroll.querySelector('#director-hint');
+const payrollWarning = companyPayroll.querySelector('.payroll-warning');
+const financialReports = serviceInputs.find(({ row }) => row === 12).input;
+
+const additional = serviceCard('Дополнительные услуги', 'Стоимость согласовывается отдельно и не входит в итог.');
+additional.append(element('p', 'Отчётность в статистику', 'row'), element('p', 'Работа с самозанятыми', 'row'));
+
+function isCompany() {
+  return form.elements.organization.value === 'ООО';
+}
+
+function availableModes(company) {
+  return taxModes.filter(([, rows]) => !company || !rows.includes(11));
+}
+
+function selectedTaxRows() {
+  return availableModes(isCompany()).find(([, rows]) => rows.join('-') === taxMode.value)?.[1] ?? [];
+}
+
+function updateVatField() {
+  const { selectable, fixedVat, hidden } = vatSettings(selectedTaxRows());
+  if (!selectable || clientVat.disabled) clientVat.value = fixedVat;
+  clientVat.disabled = !selectable;
+  document.getElementById('vat-field').hidden = hidden;
+  document.getElementById('vat-hint').hidden = fixedVat !== 'standard';
+}
+
+function updatePayrollFields() {
+  const company = isCompany();
+  const hasTeam = company && form.elements.payroll.value === 'team';
+  companyPayroll.hidden = !company;
+  for (const option of form.elements.payroll) option.disabled = !company;
+  employees.closest('.row').hidden = company;
+  employees.disabled = company;
+  teamEmployees.closest('.row').hidden = !hasTeam;
+  teamEmployees.disabled = !hasTeam;
+  directorHint.hidden = !company || hasTeam;
+  payrollWarning.hidden = !company || hasTeam || !subdivision.validity.valid || Number(subdivision.value) <= 0;
+}
+
+function updateOrganization() {
+  const company = isCompany();
+  const previous = taxMode.value;
+  const placeholder = element('option', 'Выберите налоговый режим');
+  placeholder.value = '';
+  placeholder.disabled = true;
+  taxMode.replaceChildren(placeholder);
+  for (const [label, rows] of availableModes(company)) {
+    const option = element('option', label);
+    option.value = rows.join('-');
+    taxMode.append(option);
+  }
+  taxMode.value = [...taxMode.options].some(option => option.value === previous) ? previous : '';
+  document.getElementById('subdivision-field').hidden = !company;
+  subdivision.disabled = !company;
+  financialReports.disabled = !company;
+  if (!company) {
+    subdivision.value = '0';
+    financialReports.value = '0';
+  }
+  for (const input of [subdivision, financialReports, employees, teamEmployees]) input.setCustomValidity('');
+  employees.value = '0';
+  teamEmployees.value = '0';
+  form.elements.payroll.value = 'director';
+  updateVatField();
+  updatePayrollFields();
+}
+
+function tariffLine(row, quantity, coefficient = 1, name = tariffs[row][0]) {
+  const rate = tariffs[row][1];
+  return { name, quantity, rate, coefficient, cents: rate * 100 * coefficient * quantity };
+}
+
+function subdivisionLine(row, subdivisionCount) {
+  const line = tariffLine(row, 1, 1 + 0.5 * subdivisionCount);
+  return { ...line, subdivisionCount };
+}
+
+function vatSettings(taxRows) {
+  return {
+    selectable: taxRows.length === 1 && (taxRows.includes(8) || taxRows.includes(9)),
+    fixedVat: taxRows.includes(10) ? 'standard' : '',
+    hidden: taxRows.length === 1 && taxRows.includes(11)
+  };
+}
+
+function calculateLines({ taxRows, vat, company, subdivisionCount, employeeCount, services }) {
+  const companySubdivisions = company ? subdivisionCount : 0;
+  const { selectable } = vatSettings(taxRows);
+  const lines = taxRows.map(row => {
+    if (selectable && vat === 'reduced') return { ...tariffLine(row, 1, 2), vatTreatment: 'reduced' };
+    if (selectable && vat === 'standard') {
+      return { ...tariffLine(10, 1, 1, tariffs[row][0]), vatTreatment: 'standard' };
+    }
+    if (row === 10) return { ...subdivisionLine(row, companySubdivisions), vatTreatment: 'osno' };
+    return tariffLine(row, 1);
+  });
+
+  if (employeeCount > 0) {
+    const parts = company && employeeCount === 1
+      ? [tariffLine(6, 1), subdivisionLine(7, companySubdivisions)]
+      : [subdivisionLine(37, companySubdivisions), tariffLine(38, employeeCount)];
+    lines.push({
+      name: 'Учёт заработной платы',
+      parts,
+      employeeCount,
+      cents: parts.reduce((sum, part) => sum + part.cents, 0)
+    });
+  }
+
+  for (const { row, quantity, label } of services) {
+    if (quantity > 0 && (row !== 12 || company)) lines.push(tariffLine(row, quantity, 1, label));
+  }
+  return lines;
+}
+
+function detail(label, value) {
+  const pair = element('div');
+  pair.append(element('dt', label), element('dd', value));
+  return pair;
+}
+
+function describeLine({ name, quantity, rate, coefficient, cents, subdivisionCount, parts, employeeCount, vatTreatment }) {
+  const fields = [];
+  const add = (label, value) => fields.push([label, value]);
+  let note = '';
+  if (parts) {
+    add('Сотрудников', numbers.format(employeeCount));
+    for (const part of parts) {
+      const label = part.name === tariffs[37][0] ? 'Базовая стоимость' : part.name;
+      const amount = part.name === tariffs[38][0]
+        ? `${rubles.format(part.rate)} × ${numbers.format(part.quantity)} = ${rubles.format(part.cents / 100)}`
+        : rubles.format(part.rate);
+      add(label, amount);
+      if (part.subdivisionCount) fields.push(...subdivisionDetails(part));
+    }
+    add('Итого по зарплатному блоку', rubles.format(cents / 100));
+  } else if (vatTreatment === 'reduced') {
+    add('Количество', numbers.format(quantity));
+    add('Базовый тариф', rubles.format(rate));
+    add('Коэффициент за учёт НДС 5% или 7%', '×' + numbers.format(coefficient));
+    add('Итого', rubles.format(cents / 100));
+  } else if (vatTreatment === 'standard') {
+    add('Количество', numbers.format(quantity));
+    add('Тариф налогового сопровождения с НДС 22%', rubles.format(rate));
+    add('Итого', rubles.format(cents / 100));
+    note = 'Этот тариф применяется вместо отдельного тарифа УСН.';
+  } else {
+    add('Количество', numbers.format(quantity));
+    add(subdivisionCount ? 'Базовый тариф' : 'Тариф', rubles.format(rate));
+    if (vatTreatment === 'osno') add('НДС', '22% по тарифной модели');
+    if (subdivisionCount) fields.push(...subdivisionDetails({ subdivisionCount, coefficient, cents, rate }));
+    add(subdivisionCount ? 'Итого' : 'Сумма', rubles.format(cents / 100));
+  }
+  return { name, fields, note };
+}
+
+function renderLine({ name, fields, note }) {
+  const row = element('article', '', 'row breakdown-line');
+  const details = element('dl');
+  details.append(...fields.map(([label, value]) => detail(label, value)));
+  row.append(element('h3', name), details);
+  if (note) row.append(element('p', note, 'hint'));
+  return row;
+}
+
+function subdivisionDetails({ subdivisionCount, coefficient, cents, rate }) {
+  return [
+    ['Количество ОП', numbers.format(subdivisionCount)],
+    ['Коэффициент ОП', '×' + numbers.format(coefficient)],
+    ['Доплата за ОП', rubles.format((cents - rate * 100) / 100)]
+  ];
+}
+
+function providerPayment(baseCents, rate) {
+  const vatCents = Number((BigInt(baseCents) * BigInt(rate) + 50n) / 100n);
+  return { baseCents, rate, vatCents, dueCents: baseCents + vatCents };
+}
+
+function paymentFields({ baseCents, rate, vatCents, dueCents }) {
+  return [
+    ['Услуги без НДС', rubles.format(baseCents / 100)],
+    ['НДС исполнителя', rate ? `${rate}% — ${rubles.format(vatCents / 100)}` : 'НДС не предъявляется'],
+    ['Итого к оплате в месяц', rubles.format(dueCents / 100)]
+  ];
+}
+
+function responseMessage(text) {
+  message.textContent = text;
+  message.hidden = !text;
+}
+
+function updatePayment() {
+  if (!currentCalculation) return;
+  responseMessage('');
+  const payment = providerPayment(currentCalculation.baseCents, Number(providerVat.value));
+  const valid = Number.isSafeInteger(payment.dueCents);
+  currentCalculation.payment = valid ? payment : null;
+  total.textContent = valid ? rubles.format(payment.dueCents / 100) : '—';
+  paymentDetails.replaceChildren(...(valid ? paymentFields(payment).map(([label, value]) => detail(label, value)) : []));
+  paymentDetails.hidden = !valid;
+  printHeading.hidden = !valid;
+  copyButton.disabled = printButton.disabled = !valid;
+  if (!valid) responseMessage('Сумма слишком велика. Проверьте введённые количества.');
+}
+
+function calculationText({ context, items, payment }) {
+  return [
+    'Предварительный расчёт стоимости бухгалтерского сопровождения',
+    'Исполнитель: Татьяна Ивашнева',
+    context,
+    '',
+    ...items.flatMap(({ name, fields, note }, index) => [
+      `${index + 1}. ${name}`,
+      ...fields.map(([label, value]) => `   ${label}: ${value}`),
+      ...(note ? [`   ${note}`] : []),
+      ''
+    ]),
+    ...paymentFields(payment).map(([label, value]) => `${label}: ${value}`)
+  ].join('\n');
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // Локальный файл может не иметь доступа к Clipboard API.
+    }
+  }
+  const previousFocus = document.activeElement;
+  const field = element('textarea');
+  field.value = text;
+  field.readOnly = true;
+  field.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0';
+  document.body.append(field);
+  try {
+    field.focus({ preventScroll: true });
+    field.select();
+    field.setSelectionRange(0, field.value.length);
+    if (!document.execCommand('copy')) throw new Error('Copy unavailable');
+  } finally {
+    field.remove();
+    previousFocus?.focus({ preventScroll: true });
+  }
+}
+
+providerVat.addEventListener('change', updatePayment);
+copyButton.addEventListener('click', async () => {
+  const calculation = currentCalculation;
+  const payment = calculation?.payment;
+  if (!payment) return;
+  let status;
+  try {
+    await copyText(calculationText(calculation));
+    status = 'Расчёт скопирован';
+  } catch {
+    status = 'Не удалось скопировать расчёт. Браузер не разрешил доступ к буферу обмена.';
+  }
+  if (currentCalculation === calculation && calculation.payment === payment) responseMessage(status);
+});
+printButton.addEventListener('click', () => {
+  if (currentCalculation?.payment) window.print();
+});
+
+function clearResult() {
+  currentCalculation = null;
+  total.textContent = '—';
+  breakdown.hidden = true;
+  printHeading.hidden = paymentDetails.hidden = true;
+  copyButton.disabled = printButton.disabled = true;
+  responseMessage('');
+}
+
+form.addEventListener('input', event => {
+  event.target.setCustomValidity?.('');
+  if (event.target === subdivision) updatePayrollFields();
+  clearResult();
+});
+form.addEventListener('change', event => {
+  if (event.target.name === 'organization') updateOrganization();
+  if (event.target === taxMode) updateVatField();
+  if (event.target.name === 'payroll') {
+    if (event.target.value === 'team' && teamEmployees.value === '0') teamEmployees.value = '';
+    updatePayrollFields();
+  }
+  clearResult();
+});
+
+// Убираем фокус с числового поля при прокрутке, чтобы браузер прокрутил страницу, а не число.
+form.addEventListener('wheel', event => {
+  if (event.target.type === 'number' && document.activeElement === event.target) event.target.blur();
+}, { capture: true, passive: true });
+
+const quantityInputs = [...serviceInputs.map(({ input }) => input), subdivision, employees, teamEmployees];
+form.addEventListener('reset', event => {
+  event.preventDefault();
+  for (const input of quantityInputs) {
+    input.value = '0';
+    input.setCustomValidity('');
+  }
+  form.elements.organization.value = 'ИП';
+  taxMode.value = '';
+  clientVat.value = '';
+  providerVat.value = '0';
+  updateOrganization();
+  breakdownLines.replaceChildren();
+  paymentDetails.replaceChildren();
+  printContext.textContent = '';
+  clearResult();
+});
+updateOrganization();
+
+form.addEventListener('submit', event => {
+  event.preventDefault();
+  clearResult();
+  for (const input of quantityInputs) {
+    if (input.disabled) continue;
+    const quantity = Number(input.value);
+    if (!input.validity.valid || !Number.isSafeInteger(quantity) || quantity < Number(input.min) ||
+        (input.max && quantity > Number(input.max))) {
+      input.setCustomValidity('Укажите допустимое целое количество.');
+      input.reportValidity();
+      return;
+    }
+  }
+  const company = isCompany();
+  const employeeCount = company
+    ? (form.elements.payroll.value === 'team' ? Number(teamEmployees.value) : 1)
+    : Number(employees.value);
+  const lines = calculateLines({
+    taxRows: selectedTaxRows(),
+    vat: clientVat.value,
+    company,
+    subdivisionCount: Number(subdivision.value),
+    employeeCount,
+    services: serviceInputs.filter(({ input }) => !input.disabled)
+      .map(({ row, input, label }) => ({ row, quantity: Number(input.value), label }))
+  });
+  const cents = lines.reduce((sum, line) => sum + line.cents, 0);
+  if (!Number.isSafeInteger(cents)) {
+    message.textContent = 'Сумма слишком велика. Проверьте введённые количества.';
+    message.hidden = false;
+    return;
+  }
+  const context = `Форма бизнеса: ${form.elements.organization.value} · Налоговый режим: ${taxMode.selectedOptions[0].textContent}`;
+  const items = lines.filter(line => line.cents > 0).map(describeLine);
+  currentCalculation = { context, items, baseCents: cents };
+  printContext.textContent = context;
+  breakdownLines.replaceChildren(...items.map(renderLine));
+  breakdown.hidden = false;
+  updatePayment();
+});
+</script>
+</body>
+</html>
